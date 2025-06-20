@@ -1,1 +1,15 @@
-First File
+WITH unnested_fa_names AS (
+    SELECT unnest(fa_names) AS fa_name
+    FROM sandbox_wma_shared.si_nlg_fa_narratives_review_curr2
+),
+fa_name_counts AS (
+    SELECT fa_name, COUNT(*) AS cnt
+    FROM unnested_fa_names
+    GROUP BY fa_name
+)
+SELECT 
+    fa_name,
+    cnt AS occurrence_count
+FROM fa_name_counts
+WHERE cnt < 5
+ORDER BY cnt ASC, fa_name;
