@@ -29,6 +29,17 @@ FROM
     UNNEST(fa_names) AS fa
 GROUP BY
     fa;
+
+
+SELECT
+    insight_type,
+    ARRAY_AGG(DISTINCT fa) AS fa_names
+FROM
+    sandbox_wma_shared.si_nlg_fa_narratives_review_curr2,
+    UNNEST(fa_names) AS fa
+GROUP BY
+    insight_type;
+
 ----------------------------------------------------------------------
 
 WITH unnested_fa_names AS (
