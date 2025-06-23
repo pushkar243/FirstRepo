@@ -11,6 +11,14 @@ SELECT
     ) AS fa_insight_mapping
 FROM
     sandbox_wma_shared.si_nlg_fa_narratives_review_curr2;
+
+
+SELECT
+    fa AS fa_name,
+    insight_type
+FROM
+    sandbox_wma_shared.si_nlg_fa_narratives_review_curr2,
+    UNNEST(fa_names) AS fa;
 ----------------------------------------------------------------------
 
 WITH unnested_fa_names AS (
