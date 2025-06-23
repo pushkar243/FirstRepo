@@ -1,3 +1,18 @@
+23/06
+SELECT
+    array_to_string(fa_names, '') AS fa_names,
+    insight_type,
+    array_to_string(
+        ARRAY(
+            SELECT fa || ' -> ' || insight_type
+            FROM unnest(fa_names) AS fa
+        ),
+        ', '
+    ) AS fa_insight_mapping
+FROM
+    sandbox_wma_shared.si_nlg_fa_narratives_review_curr2;
+----------------------------------------------------------------------
+
 WITH unnested_fa_names AS (
     SELECT unnest(fa_names) AS fa_name
     FROM sandbox_wma_shared.si_nlg_fa_narratives_review_curr2
