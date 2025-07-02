@@ -17,7 +17,10 @@ for i in range(0, total_rows, batch_size):
     texts = batch["narrative_raw_plain"].fillna("").tolist()  # Avoid NaNs
     
     # Compute embeddings in batch using embed_documents
-    batch["embedding"] = embeddings.embed_documents(texts)
+    batch["embedding_list"] = embeddings.embed_documents(texts)
+
+# Safely assign back
+    batch["embedding"] = embeddings_list
 
     # Optional print for tracking
     print(f"Embedding completed for batch {i // batch_size + 1}")
