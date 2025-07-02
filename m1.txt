@@ -1,3 +1,32 @@
+02/07
+
+import math
+import pandas as pd
+
+# Define batch size
+batch_size = 1000
+total_rows = len(df)
+
+# Loop over DataFrame in batches
+for i in range(0, total_rows, batch_size):
+    # Get the current batch
+    batch = df.iloc[i:i + batch_size].copy()
+    
+    # Clean and prepare the input text (if needed)
+    batch["narrative_raw_plain"] = batch["narrative_raw"].apply(remove_html_tags)
+    texts = batch["narrative_raw_plain"].fillna("").tolist()  # Avoid NaNs
+    
+    # Compute embeddings in batch using embed_documents
+    batch["embedding"] = embeddings.embed_documents(texts)
+
+    # Optional print for tracking
+    print(f"Embedding completed for batch {i // batch_size + 1}")
+
+    # Write to database or wherever needed
+    helper.write_to_db(batch, db_settings)
+
+
+
 23/06
 SELECT
     array_to_string(fa_names, '') AS fa_names,
