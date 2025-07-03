@@ -1,4 +1,19 @@
 03/07
+class PromptWizard:
+    def __init__(self):
+        print("PromptWizard initialized")
+
+    def run(self):
+        print("Running PromptWizard logic")
+Then your test.py will work with:
+
+python
+Copy
+Edit
+from promptwizard import PromptWizard
+
+wizard = PromptWizard()
+wizard.run()
 
 from promptwizard import PromptWizard
 
