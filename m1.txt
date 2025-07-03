@@ -1,3 +1,28 @@
+03/07
+
+from promptwizard import PromptWizard
+
+def main():
+    # Initialize PromptWizard
+    wizard = PromptWizard()
+
+    # Set your prompt manually (or read from file)
+    prompt = """
+    You are an expert summarizer. Summarize the following text in one paragraph:
+
+    TEXT:
+    Artificial Intelligence is a field of computer science that enables machines to mimic human intelligence...
+    """
+
+    # Run PromptWizard with the prompt
+    response = wizard.run(prompt)
+
+    # Print the response
+    print("Generated Output:\n", response)
+
+if __name__ == "__main__":
+    main()
+
 02/07
 
 import math
