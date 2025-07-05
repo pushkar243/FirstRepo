@@ -1,3 +1,17 @@
+query = f"""
+    SELECT 
+        REGEXP_REPLACE(RIGHT(LEFT(global_key, LENGTH(global_key)-13), LENGTH(global_key)-13), '[^a-zA-Z0-9_]', '', 'g') AS global_key,
+        REGEXP_REPLACE(target_type, '[^a-zA-Z0-9_]', '', 'g') AS target_type,
+        REGEXP_REPLACE(target_key, '[^a-zA-Z0-9_]', '', 'g') AS target_key,
+        acc_mhh_n, insight_type,
+        ARRAY_TO_STRING(fa_names, '|') AS fa_names,
+        ARRAY_TO_STRING(fa_ids, '|') AS fa_ids,
+        narrative_title_plain,
+        narrative_raw
+    FROM sandbox_whared.si_nlg.fa_narratives_review_curr
+    WHERE MOD(ABS(HASHTEXT(global_key)), 16) = {key_mod}
+"""
+
 03/07
 class PromptWizard:
     def __init__(self):
