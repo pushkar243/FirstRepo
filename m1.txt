@@ -1,3 +1,73 @@
+✅ Step-by-Step: Setup with Conda + Python 3.11
+🔹 Step 1: Create a Conda Environment with Python 3.11
+In your terminal:
+
+bash
+Copy
+Edit
+conda create -n promptwizard-env python=3.11 -y
+Activate it:
+
+bash
+Copy
+Edit
+conda activate promptwizard-env
+🔹 Step 2: Set Up Your Project Structure
+Ensure your folder looks like this:
+
+arduino
+Copy
+Edit
+PromptWizard/
+├── promptwizard/
+│   ├── __init__.py        ← Your PromptWizard class lives here
+├── pythonProject/
+│   └── test.py            ← Testing script
+├── setup.py
+🔹 Step 3: Create the setup.py File
+In the root PromptWizard/ folder, create setup.py:
+
+python
+Copy
+Edit
+# setup.py
+
+from setuptools import setup, find_packages
+
+setup(
+    name='promptwizard',
+    version='0.1',
+    packages=find_packages(),
+    description='A lightweight prompt template runner',
+    author='Your Name',
+    install_requires=[],
+)
+🔹 Step 4: Install the Package in Editable Mode
+Inside the promptwizard-env Conda environment:
+
+bash
+Copy
+Edit
+pip install -e .
+Even in Conda, pip works fine for installing editable packages.
+
+🔹 Step 5: Run Your Test Script
+Make sure you're still in the promptwizard-env environment and run:
+
+bash
+Copy
+Edit
+python pythonProject/test.py
+🧠 Recap
+You now have:
+
+✅ A Conda environment named promptwizard-env
+
+✅ Python version 3.11
+
+✅ A locally installable prompt package using pip install -e .
+
+
 query = f"""
     SELECT 
         REGEXP_REPLACE(RIGHT(LEFT(global_key, LENGTH(global_key)-13), LENGTH(global_key)-13), '[^a-zA-Z0-9_]', '', 'g') AS global_key,
