@@ -1,4 +1,7 @@
-✅ Step-by-Step: Setup with Conda + Python 3.11
+SELECT REGEXP_REPLACE(your_column, '<[^>]*>', '', 'g') AS cleaned_text
+FROM your_table;✅
+
+Step-by-Step: Setup with Conda + Python 3.11
 🔹 Step 1: Create a Conda Environment with Python 3.11
 In your terminal:
 
