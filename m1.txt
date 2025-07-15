@@ -1,3 +1,44 @@
+def build_combined_query(intentions, fa_name=None):
+    try:
+        if not intentions or not isinstance(intentions, list):
+            raise ValueError("Intentions must be a non-empty list of lists.")
+
+        query_blocks = []
+
+        for group in intentions:
+            if not group:
+                continue
+
+            for intent in group:
+                # Build single intent filter
+                intention_filter = f"insight_type ILIKE '%%{intent}%%'"
+
+                # Optional FA filter
+                fa_filter = ""
+                if fa_name and fa_name != "FA_NOT_MENTIONED":
+                    fa_filter = f" AND array_to_string(fa_names, ',') ILIKE '%%{fa_name}%%'"
+
+                # Build SELECT block with internal limit
+                query_block = f"""
+                    SELECT 
+                        insight_type, fa_names, acc_nm, included_clients,
+                        REGEXP_REPLACE(narrative_raw, '<[^>]+>', '', 'g') AS narrative_raw
+                    FROM {settings.psql_schema}.{settings.psql_table}
+                    WHERE {intention_filter}{fa_filter}
+                    LIMIT 10
+                """
+                query_blocks.append(query_block.strip())
+
+        # Join all SELECTs using UNION ALL
+        combined_query = "\nUNION ALL\n".join(query_blocks)
+
+        return combined_query.strip()
+
+    except Exception as e:
+        logger.exception(f"Error in building combined query. Error: {e}")
+        return None
+-------------------------------------------------------------------------------------------
+
 def build_combined_query(intentions, conjunction=None, fa_name=None, total_limit=None):
     try:
         if not intentions or not isinstance(intentions, list):
