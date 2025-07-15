@@ -1,4 +1,55 @@
 def build_combined_query(intentions, conjunction=None, fa_name=None, total_limit=None):
+    try:
+        if not intentions or not isinstance(intentions, list):
+            raise ValueError("Intentions must be a non-empty list of lists.")
+
+        query_blocks = []
+
+        for group in intentions:
+            if not group:
+                continue
+
+            # Build the OR clause for this intention group
+            group_clause = " OR ".join([f"insight_type ILIKE '%%{intent}%%'" for intent in group])
+            intention_filter = f"({group_clause})"
+
+            # Optional FA filter
+            fa_filter = ""
+            if fa_name and fa_name != "FA_NOT_MENTIONED":
+                fa_filter = f" AND array_to_string(fa_names, ',') ILIKE '%%{fa_name}%%'"
+
+            # Build this SELECT block
+            query_block = f"""
+                SELECT 
+                    insight_type, fa_names, acc_nm, included_clients,
+                    REGEXP_REPLACE(narrative_raw, '<[^>]+>', '', 'g') AS narrative_raw
+                FROM {settings.pgsql_schema}.{settings.pgsql_table}
+                WHERE {intention_filter}{fa_filter}
+                LIMIT 10
+            """
+            query_blocks.append(query_block.strip())
+
+        # Combine with UNION ALL
+        combined_query = "\nUNION ALL\n".join(query_blocks)
+
+        # Optionally apply total LIMIT
+        if total_limit:
+            combined_query = f"""
+                SELECT * FROM (
+                    {combined_query}
+                ) AS combined_results
+                LIMIT {total_limit}
+            """
+
+        return combined_query.strip()
+
+    except Exception as e:
+        logger.exception(f"Error in building combined query. Error: {e}")
+        return None
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+def build_combined_query(intentions, conjunction=None, fa_name=None, total_limit=None):
     """
     Build a combined SQL query using UNION ALL across intention groups.
 
