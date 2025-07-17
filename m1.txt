@@ -1,3 +1,60 @@
+from collections import defaultdict
+from typing import List
+from langchain_core.documents import Document
+
+def get_intentions(question: str) -> List[str]:
+    """
+    Perform hybrid semantic search with reranking on the question,
+    then extract the most relevant insight_type values from the results.
+
+    Args:
+        question (str): The search query.
+
+    Returns:
+        List[str]: Top insight_type values within 2% of the top reranker score.
+    """
+    # Get the vectorstore instance
+    vs = get_vectorstore()
+
+    # Perform hybrid search with reranking
+    docs_and_scores = vs.semantic_hybrid_search_with_score_and_rerank(
+        question,
+        **{"k": settings.search_k}
+    )
+
+    # Group reranker scores by insight_type
+    reranker_scores = defaultdict(list)
+
+    for doc, relevance_score, reranker_score in docs_and_scores:
+        metadata = doc.metadata
+        insight_type = metadata.get("insight_type")
+        if insight_type and reranker_score is not None:
+            reranker_scores[insight_type].append(reranker_score)
+
+    # Calculate max reranker score for each insight_type
+    max_scores = {
+        insight_type: max(scores)
+        for insight_type, scores in reranker_scores.items()
+    }
+
+    if not max_scores:
+        return []
+
+    top_score = max(max_scores.values())
+    threshold = top_score * 0.98  # 2% below top score
+
+    # Filter insight_types within threshold
+    filtered_insight_types = [
+        insight_type for insight_type, score in max_scores.items()
+        if score >= threshold
+    ]
+
+    print("Intentions:", question)
+    print("Docs and scores:", docs_and_scores)
+    print("Filtered insight types:", filtered_insight_types)
+
+    return filtered_insight_types
+-----------------------
 def build_combined_query(intentions, fa_name=None):
     try:
         if not intentions or not isinstance(intentions, list):
