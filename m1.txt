@@ -1,3 +1,10 @@
+# ✅ Restore privileges
+db_con.execute(
+    f"GRANT SELECT ON TABLE {cfg.SCHEMA}.{cfg.GP_OUTPUT_MODEL} TO PUBLIC;"
+)
+
+*******************************************************************************************
+
 update query 
 def _upload_to_db(data_dir, db_con):
     """Performs final cleaning-up and upload stories to GP"""
