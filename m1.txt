@@ -1,3 +1,67 @@
+update query 
+def _upload_to_db(data_dir, db_con):
+    """Performs final cleaning-up and upload stories to GP"""
+
+    # Load data
+    df = pd.read_pickle(f"{data_dir}/stories_with_meta_tagged_pdfs_ISIN.pickle")
+
+    df["portal_article_href"] = (
+        "https://bw.gpwb.ubs.com/app/NQS/impact/detail/" + df["id"].astype(str)
+    )
+    df["id"] = "J-" + df["id"].astype(str)
+
+    date_now = datetime.today().strftime("%Y-%m-%d %H:%M")
+    print(date_now)
+    df["as_of_date"] = date_now
+    df = df.replace("NULL", np.nan)
+
+    # Clean columns with list of text or text-list types
+    for c in cfg.COLUMNS_TEXT_TYPE:
+        df[c] = df[c].apply(lambda x: np.nan if x == ["NULL"] else x)
+
+    for c in cfg.COLUMNS_TEXT_LIST_TYPE:
+        df[c] = df[c].apply(lambda x: " || ".join(x) if isinstance(x, typing.List) else x)
+
+    print("df before upload: ", df.shape)
+
+    # Step 1: Truncate temp table
+    db_con.execute(f"TRUNCATE TABLE {cfg.SCHEMA}.temp_table")
+
+    # Step 2: Upload data to temp table (preserve structure & ownership)
+    df.to_sql(
+        name="temp_table",
+        con=db_con,
+        index=False,
+        if_exists="append",  # ✅ safer than replace
+        schema=cfg.SCHEMA,
+        chunksize=10000,
+    )
+
+    # Step 3: Build and run UPSERT query dynamically
+    columns = df.columns.tolist()
+    columns_str = ", ".join(columns)
+    update_str = ",\n    ".join(
+        [f"{col} = EXCLUDED.{col}" for col in columns if col != "id"]
+    )
+
+    upsert_query = f"""
+    INSERT INTO {cfg.SCHEMA}.{cfg.GP_OUTPUT_MODEL} ({columns_str})
+    SELECT {columns_str}
+    FROM {cfg.SCHEMA}.temp_table
+    ON CONFLICT (id)
+    DO UPDATE SET
+        {update_str};
+    """
+
+    print("Running UPSERT...")
+    db_con.execute(upsert_query)
+
+    # Step 4: Optional deduplication step
+    print("deduplication")
+    db_con.execute(cfg.DEDUP_QUERY)
+
+
+***********************************************************************************************************************************************
 from collections import defaultdict
 from typing import List
 from langchain_core.documents import Document
