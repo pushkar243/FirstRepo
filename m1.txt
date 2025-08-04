@@ -1,3 +1,18 @@
+Hi [Recipient's Name],
+
+We’re facing a significant bottleneck with the API, which is causing delays and instability in our workflows. Given that the go-live is scheduled for this Friday, this issue is becoming critical and may impact the overall timeline if not resolved urgently.
+
+Could you please look into this on priority and help stabilize the API for the next few days? It’s important that we maintain a steady environment leading up to the release.
+
+Also, it would be helpful if you could raise this on the Teams channel so the broader team is aware and aligned.
+
+Let me know if any support is needed from our side.
+
+Best regards,
+[Your Name]
+
+**********************************************************
+
 # ✅ Restore privileges
 db_con.execute(
     f"GRANT SELECT ON TABLE {cfg.SCHEMA}.{cfg.GP_OUTPUT_MODEL} TO PUBLIC;"
