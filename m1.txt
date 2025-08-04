@@ -1,3 +1,30 @@
+def get_no_pages(date, cert_dir):
+    CERT = get_cert(cert_dir)
+    PAYLOAD = get_payload(date)
+    MAX_RETRIES = 5
+    RETRY_WAIT = 180  # seconds
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            logger.info(f"Attempt {attempt}: Requesting page data for date {date}")
+            response = requests.get(PAYLOAD, headers=cfg.HEADERS, cert=CERT, verify=False)
+            response.raise_for_status()
+            response_d = json.loads(response.content)
+            no_pages = response_d.get("page", {}).get("totalPages")
+            if no_pages is not None:
+                return no_pages
+            else:
+                raise ValueError("Missing 'totalPages' in response")
+        except Exception as e:
+            logger.warning(f"[Attempt {attempt}] Error for date {date}: {e}")
+            if attempt == MAX_RETRIES:
+                logger.error(f"Max retries exhausted. Returning 0 pages for date {date}")
+                return 0  # ← gracefully handle instead of raising
+            else:
+                logger.info(f"Retrying in {RETRY_WAIT} seconds for date {date}...")
+                time.sleep(RETRY_WAIT)
+
+
 ******************************************
 
 # ✅ Restore privileges
