@@ -1,3 +1,23 @@
+dedup_query = f"""
+WITH ranked_rows AS (
+    SELECT 
+        ctid,
+        ROW_NUMBER() OVER (
+            PARTITION BY id
+            ORDER BY timestamp DESC
+        ) AS rn
+    FROM {SCHEMA}.{GP_OUTPUT_MODEL}
+)
+DELETE FROM {SCHEMA}.{GP_OUTPUT_MODEL}
+WHERE ctid IN (
+    SELECT ctid FROM ranked_rows WHERE rn > 1
+);
+"""
+
+cursor.execute(dedup_query)
+conn.commit()
+******************************************************************************
+
 def get_no_pages(date, cert_dir):
     CERT = get_cert(cert_dir)
     PAYLOAD = get_payload(date)
