@@ -1,3 +1,21 @@
+    lock_file = os.path.join(data_dir, ".processing.lock")
+
+    # Prevent double execution
+    if os.path.exists(lock_file):
+        print("Another process is already running. Exiting.")
+        return
+
+    try:
+        # Create lock file
+        with open(lock_file, "w") as f:
+            f.write("processing")
+
+
+ finally:
+        # Always remove lock file
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+----------------------------
 import os
 import shutil
 
