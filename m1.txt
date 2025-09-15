@@ -1,4 +1,9 @@
-    lock_file = os.path.join(data_dir, ".processing.lock")
+# Set permissions to 777
+os.chmod(dest_file1, 0o777)
+os.chmod(dest_file2, 0o777)
+
+
+lock_file = os.path.join(data_dir, ".processing.lock")
 
     # Prevent double execution
     if os.path.exists(lock_file):
