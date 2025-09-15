@@ -1,3 +1,58 @@
+import os
+import shutil
+
+def wrapper():
+    project_dir = "/opt/airflow/dags/Lang_Models/taxonomy_data_xml_IBResearch/"
+    project_datafiles_dir = "/opt/airflow/datalake/cid/staat_wro/taxonomy_data_xml_IBResearch/"
+    python_dir = project_dir + "python"
+    cert_dir = project_datafiles_dir + "certificates"
+    models_dir = project_datafiles_dir + "models"
+    data_dir = project_datafiles_dir + "data"
+    processed_dir = os.path.join(data_dir, "processed")
+
+    # Create processed directory if not exists
+    os.makedirs(processed_dir, exist_ok=True)
+
+    # Loop through files in the data directory
+    for file in os.listdir(data_dir):
+        if file.endswith(".pub.xml"):
+            base_name = file.replace(".pub.xml", "")
+
+            first_xml_path = os.path.join(data_dir, f"{base_name}.pub.xml")
+            second_xml_path = os.path.join(data_dir, f"{base_name}.txt.xml")
+
+            if not os.path.exists(second_xml_path):
+                print(f"Skipping {base_name} - second XML not found")
+                continue
+
+            try:
+                # Extract metadata from the first XML
+                extracted_data = extract_metadata_from_first_xml(first_xml_path)
+
+                # Extract text content from the second XML
+                extracted_text = extract_text_from_second_xml(second_xml_path)
+
+                # Add parsed text
+                extracted_data["parsed_text"] = extracted_text
+
+                # Print (or process) results
+                print(f"Extracted Data for {base_name}:")
+                print(extracted_data)
+
+                # Insert into DB
+                insert_or_replace(connection_string, table_name, extracted_data)
+
+                # Move processed files
+                shutil.move(first_xml_path, os.path.join(processed_dir, f"{base_name}.pub.xml"))
+                shutil.move(second_xml_path, os.path.join(processed_dir, f"{base_name}.txt.xml"))
+
+                print(f"Moved {base_name} files to processed folder.")
+
+            except Exception as e:
+                print(f"Error processing {base_name}: {e}")
+
+
+********************************************************************************
 dedup_query = f"""
 WITH ranked_rows AS (
     SELECT 
