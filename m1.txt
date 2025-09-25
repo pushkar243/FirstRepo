@@ -1,3 +1,60 @@
+import pdfplumber
+import camelot
+import pandas as pd
+import os
+
+pdf_path = "your_file.pdf"
+output_folder = "pdf_output"
+os.makedirs(output_folder, exist_ok=True)
+
+all_text = []
+
+# -----------------------------
+# 1. Extract text excluding tables with error handling
+# -----------------------------
+with pdfplumber.open(pdf_path) as pdf:
+    for page_num, page in enumerate(pdf.pages, start=1):
+        # Find tables on the page
+        tables = page.find_tables()
+        table_bboxes = [t.bbox for t in tables]  # list of (x0, y0, x1, y1)
+
+        words_outside = []
+        try:
+            for word in page.extract_words():
+                if not any(x0 <= word['x0'] <= x1 and y0 <= word['top'] <= y1 for x0, y0, x1, y1 in table_bboxes):
+                    words_outside.append(word['text'])
+        except Exception as e:
+            print(f"Warning: Skipping words on page {page_num} due to parsing error: {e}")
+            # fallback: extract text without splitting into words
+            text_fallback = page.extract_text()
+            if text_fallback:
+                words_outside = [w for w in text_fallback.split()]
+
+        text = " ".join(words_outside)
+        all_text.append(f"--- Page {page_num} ---\n{text}\n")
+
+# Save text to a TXT file
+text_file_path = os.path.join(output_folder, "extracted_text.txt")
+with open(text_file_path, "w", encoding="utf-8") as f:
+    f.writelines(all_text)
+
+print(f"Text extracted (excluding tables) and saved to {text_file_path}")
+
+# -----------------------------
+# 2. Extract tables using Camelot (lattice for bordered tables)
+# -----------------------------
+try:
+    tables = camelot.read_pdf(pdf_path, pages="all", flavor="lattice")
+    for i, table in enumerate(tables, start=1):
+        df = table.df
+        table_file_path = os.path.join(output_folder, f"table_{i}.csv")
+        df.to_csv(table_file_path, index=False)
+        print(f"Table {i} extracted and saved to {table_file_path}")
+    print("All tables extracted.")
+except Exception as e:
+    print(f"Error extracting tables with Camelot: {e}")
+******************************************************************************
+
 # Set permissions to 777
 os.chmod(dest_file1, 0o777)
 os.chmod(dest_file2, 0o777)
