@@ -1,3 +1,131 @@
+import pdfplumber
+from openai import AzureOpenAI
+
+# ==== CONFIGURATION ====
+AZURE_OPENAI_ENDPOINT = "https://<your-custom-url>.openai.azure.com/"
+AZURE_OPENAI_KEY = "<your-api-key>"
+AZURE_OPENAI_DEPLOYMENT = "<your-deployment-name>"  # e.g., "gpt-4o-mini"
+
+# ==== CLIENT SETUP ====
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_KEY,
+    api_version="2024-08-01-preview",  # use your correct API version
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+)
+
+# ==== STEP 1: Extract text + tables ====
+def extract_text_and_tables(pdf_path):
+    extracted_data = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            # Extract text
+            text = page.extract_text()
+            if text:
+                extracted_data["text"].append({"page": page_num, "content": text})
+
+            # Extract tables
+            tables = page.extract_tables()
+            for table in tables:
+                extracted_data["tables"].append({"page": page_num, "table": table})
+
+    return extracted_data
+
+# ==== STEP 2: Convert tables into descriptive statements via Azure OpenAI ====
+def table_to_statement(table, page_num):
+    # Format table for LLM
+    table_str = "\n".join([", ".join(row) for row in table if row])
+
+    response = client.chat.completions.create(
+        model=AZURE_OPENAI_DEPLOYMENT,
+        messages=[
+            {"role": "system", "content": "You are an assistant that converts tables into descriptive text for knowledge bases."},
+            {"role": "user", "content": f"Here is a table extracted from page {page_num} of a PDF:\n\n{table_str}\n\nConvert this into a concise, factual statement so it can be stored in a retrieval-augmented generation (RAG) system."}
+        ],
+        temperature=0.2,
+    )
+
+    return response.choices[0].message.content.strip()
+
+# ==== STEP 3: Process PDF ====
+pdf_path = "sample.pdf"
+data = extract_text_and_tables(pdf_path)
+
+final_chunks = []
+
+# Add raw text as chunks
+for t in data["text"]:
+    final_chunks.append(f"Page {t['page']} Text: {t['content']}")
+
+# Convert tables to descriptive text
+for tbl in data["tables"]:
+    stmt = table_to_statement(tbl["table"], tbl["page"])
+    final_chunks.append(f"Page {tbl['page']} Table (converted): {stmt}")
+
+# ==== OUTPUT ====
+for chunk in final_chunks[:5]:  # show first few
+    print(chunk, "\n---")
+
+
+*******************************************
+import os
+import pdfplumber
+from openai import AzureOpenAI
+
+# ==== CONFIGURATION ====
+AZURE_OPENAI_ENDPOINT = "https://<your-custom-url>.openai.azure.com/"
+AZURE_OPENAI_KEY = "<your-api-key>"
+AZURE_OPENAI_DEPLOYMENT = "<your-deployment-name>"  # e.g., "gpt-4o-mini"
+
+# ==== CLIENT SETUP ====
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_KEY,
+    api_version="2024-08-01-preview",  # check your Azure API version
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+)
+
+# ==== STEP 1: Extract text + tables ====
+def extract_text_and_tables(pdf_path):
+    extracted_data = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            # Extract text
+            text = page.extract_text()
+            if text:
+                extracted_data["text"].append({"page": page_num, "content": text})
+
+            # Extract tables
+            tables = page.extract_tables()
+            for table in tables:
+                extracted_data["tables"].append({"page": page_num, "table": table})
+
+    return extracted_data
+
+pdf_path = "sample.pdf"
+data = extract_text_and_tables(pdf_path)
+
+# Print raw extracted data
+print("Extracted Text:\n", data["text"][:2])  # show first 2 pages of text
+print("Extracted Tables:\n", data["tables"][:1])  # show first table
+
+# ==== STEP 2: (Optional) Process with Azure OpenAI ====
+# Example: ask AI to interpret first table
+if data["tables"]:
+    table_str = "\n".join([", ".join(row) for row in data["tables"][0]["table"] if row])
+    
+    response = client.chat.completions.create(
+        model=AZURE_OPENAI_DEPLOYMENT,
+        messages=[
+            {"role": "system", "content": "You are a data analyst."},
+            {"role": "user", "content": f"Here is a table from a PDF:\n{table_str}\n\nExplain what this table shows."}
+        ],
+    )
+
+    print("\nAI Interpretation:\n", response.choices[0].message.content)
+
+
+********************************************************************
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 
