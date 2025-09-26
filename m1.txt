@@ -9,6 +9,96 @@ AZURE_OPENAI_DEPLOYMENT = "<your-deployment-name>"  # e.g., "gpt-4o-mini"
 # ==== CLIENT SETUP ====
 client = AzureOpenAI(
     api_key=AZURE_OPENAI_KEY,
+    api_version="2024-08-01-preview",  # adjust if needed
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+)
+
+# ==== STEP 1: Extract text outside tables + tables ====
+def extract_text_and_tables(pdf_path):
+    extracted_data = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            tables = page.find_tables()
+
+            # Collect bounding boxes of tables
+            table_bboxes = [table.bbox for table in tables]
+
+            # Save structured tables
+            for table in tables:
+                extracted_data["tables"].append({"page": page_num, "table": table.extract()})
+
+            # Extract text objects (characters/words)
+            words = page.extract_words()
+
+            # Keep only words not inside any table bbox
+            filtered_words = []
+            for w in words:
+                x0, top, x1, bottom = w["x0"], w["top"], w["x1"], w["bottom"]
+
+                inside_table = any(
+                    (x0 >= bbox[0] and x1 <= bbox[2] and top >= bbox[1] and bottom <= bbox[3])
+                    for bbox in table_bboxes
+                )
+
+                if not inside_table:
+                    filtered_words.append(w)
+
+            # Reconstruct text from filtered words
+            text_content = " ".join([w["text"] for w in filtered_words])
+            if text_content.strip():
+                extracted_data["text"].append({"page": page_num, "content": text_content})
+
+    return extracted_data
+
+# ==== STEP 2: Convert tables into descriptive statements ====
+def table_to_statement(table, page_num):
+    table_str = "\n".join([", ".join(row) for row in table if row])
+
+    response = client.chat.completions.create(
+        model=AZURE_OPENAI_DEPLOYMENT,
+        messages=[
+            {"role": "system", "content": "You are an assistant that converts structured tables into plain factual text for knowledge storage."},
+            {"role": "user", "content": f"Convert the following table (from page {page_num}) into a clear, factual statement:\n\n{table_str}"}
+        ],
+        temperature=0.2,
+    )
+
+    return response.choices[0].message.content.strip()
+
+# ==== STEP 3: Build RAG-ready chunks ====
+def process_pdf_for_rag(pdf_path):
+    data = extract_text_and_tables(pdf_path)
+    rag_chunks = []
+
+    for t in data["text"]:
+        rag_chunks.append({"page": t["page"], "type": "text", "content": t["content"]})
+
+    for tbl in data["tables"]:
+        stmt = table_to_statement(tbl["table"], tbl["page"])
+        rag_chunks.append({"page": tbl["page"], "type": "table_summary", "content": stmt})
+
+    return rag_chunks
+
+# ==== RUN ====
+pdf_path = "sample.pdf"
+rag_ready_data = process_pdf_for_rag(pdf_path)
+
+for chunk in rag_ready_data[:5]:
+    print(chunk, "\n---")
+
+************************************************
+import pdfplumber
+from openai import AzureOpenAI
+
+# ==== CONFIGURATION ====
+AZURE_OPENAI_ENDPOINT = "https://<your-custom-url>.openai.azure.com/"
+AZURE_OPENAI_KEY = "<your-api-key>"
+AZURE_OPENAI_DEPLOYMENT = "<your-deployment-name>"  # e.g., "gpt-4o-mini"
+
+# ==== CLIENT SETUP ====
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_KEY,
     api_version="2024-08-01-preview",  # use your correct API version
     azure_endpoint=AZURE_OPENAI_ENDPOINT,
 )
