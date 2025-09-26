@@ -86,6 +86,10 @@ rag_ready_data = process_pdf_for_rag(pdf_path)
 
 for chunk in rag_ready_data[:5]:
     print(chunk, "\n---")
+with open("rag_output.txt", "w", encoding="utf-8") as f:
+    for chunk in rag_ready_data:
+        f.write(f"[Page {chunk['page']} - {chunk['type']}]\n")
+        f.write(chunk["content"] + "\n\n")
 
 ************************************************
 import pdfplumber
