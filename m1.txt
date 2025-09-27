@@ -1,5 +1,73 @@
 import pdfplumber
 
+def extract_text_without_tables(pdf_path, tol_line=3):
+    """
+    Returns dict {"text": [{"page": n, "content": "..."}], "tables": [{"page": n, "table": table_obj}, ...]}
+    where text has table content removed by word-overlap filtering.
+    """
+    result = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            # find tables and normalize bboxes -> (x0, top, x1, bottom)
+            table_objs = list(page.find_tables())
+            table_bboxes = []
+            for t in table_objs:
+                bbox = t.bbox  # can be (x0, top, x1, bottom) but normalize to avoid negative sizes
+                x0 = min(bbox[0], bbox[2])
+                x1 = max(bbox[0], bbox[2])
+                top = min(bbox[1], bbox[3])
+                bottom = max(bbox[1], bbox[3])
+                table_bboxes.append((float(x0), float(top), float(x1), float(bottom)))
+
+            # save tables separately (use extract_tables if you want table matrix)
+            for tbl in page.extract_tables():
+                result["tables"].append({"page": page_num, "table": tbl})
+
+            # extract words (safer than chars)
+            words = page.extract_words()  # each word has x0,x1,top,bottom,text
+
+            # filter out words that overlap any table bbox
+            filtered_words = []
+            for w in words:
+                wx0, wx1 = float(w["x0"]), float(w["x1"])
+                wtop, wbottom = float(w["top"]), float(w["bottom"])
+                overlaps = False
+                for bx0, btop, bx1, bbottom in table_bboxes:
+                    # check bbox overlap (axis-aligned)
+                    if (wx1 > bx0 and wx0 < bx1) and (wbottom > btop and wtop < bbottom):
+                        overlaps = True
+                        break
+                if not overlaps:
+                    filtered_words.append(w)
+
+            # reconstruct text from filtered words by sorting and grouping into lines
+            filtered_words.sort(key=lambda x: (float(x["top"]), float(x["x0"])))
+            lines = []
+            current_line = []
+            current_top = None
+            for w in filtered_words:
+                top = float(w["top"])
+                if current_top is None or abs(top - current_top) > tol_line:
+                    if current_line:
+                        lines.append(" ".join([z["text"] for z in current_line]))
+                    current_line = [w]
+                    current_top = top
+                else:
+                    current_line.append(w)
+            if current_line:
+                lines.append(" ".join([z["text"] for z in current_line]))
+
+            non_table_text = "\n".join(lines).strip()
+            if non_table_text:
+                result["text"].append({"page": page_num, "content": non_table_text})
+
+    return result
+*******************
+
+
+import pdfplumber
+
 def extract_text_and_tables(pdf_path):
     extracted_data = {"text": [], "tables": []}
 
