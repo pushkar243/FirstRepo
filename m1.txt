@@ -1,3 +1,50 @@
+import pdfplumber
+
+def extract_text_and_tables(pdf_path):
+    extracted_data = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            
+            # Extract tables + bounding boxes
+            tables = page.extract_tables()
+            table_bboxes = [t.bbox for t in page.find_tables()]
+
+            # Get all characters from page
+            chars = page.chars
+
+            # Filter out chars that fall inside any table bbox
+            filtered_chars = []
+            for c in chars:
+                cx, cy = float(c["x"]), float(c["top"])
+                inside_table = any(
+                    bbox[0] <= cx <= bbox[2] and bbox[1] <= cy <= bbox[3]
+                    for bbox in table_bboxes
+                )
+                if not inside_table:
+                    filtered_chars.append(c)
+
+            # Rebuild text from remaining characters
+            non_table_text = page.extract_text(chars=filtered_chars)
+
+            if non_table_text and non_table_text.strip():
+                extracted_data["text"].append({
+                    "page": page_num,
+                    "content": non_table_text
+                })
+
+            # Save tables separately
+            for table in tables:
+                extracted_data["tables"].append({
+                    "page": page_num,
+                    "table": table
+                })
+
+    return extracted_data
+*************************************************************
+
+
+
 def extract_text_and_tables(pdf_path):
     extracted_data = {"text": [], "tables": []}
 
