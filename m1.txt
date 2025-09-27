@@ -1,3 +1,42 @@
+def extract_text_and_tables(pdf_path):
+    extracted_data = {"text": [], "tables": []}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, start=1):
+            
+            # Extract tables first
+            tables = page.extract_tables()
+            table_bboxes = [table.bbox for table in page.find_tables()]  # bounding boxes of tables
+            
+            # Remove table areas when extracting text
+            non_table_text = ""
+            if table_bboxes:
+                # Crop out table regions and extract only non-table text
+                cropped_page = page
+                for bbox in table_bboxes:
+                    cropped_page = cropped_page.crop((0, 0, page.width, bbox[1]))  # above table
+                    non_table_text += cropped_page.extract_text() or ""
+                    
+                    cropped_page = page.crop((0, bbox[3], page.width, page.height))  # below table
+                    non_table_text += cropped_page.extract_text() or ""
+            else:
+                non_table_text = page.extract_text(x_tolerance=3, y_tolerance=3) or ""
+
+            if non_table_text.strip():
+                extracted_data["text"].append({
+                    "page": page_num,
+                    "content": non_table_text
+                })
+
+            # Store tables separately
+            for table in tables:
+                extracted_data["tables"].append({
+                    "page": page_num,
+                    "table": table
+                })
+
+    return extracted_data
+************************************
 import pdfplumber
 from openai import AzureOpenAI
 
