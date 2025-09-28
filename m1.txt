@@ -1,3 +1,36 @@
+from docling.document_converter import DocumentConverter
+
+def extract_text_and_tables_with_docling(pdf_path, output_path="extracted_output.txt"):
+    converter = DocumentConverter()
+    doc = converter.convert(pdf_path)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        for page_idx, page in enumerate(doc.pages, start=1):
+            f.write(f"===== Page {page_idx} =====\n\n")
+
+            # Write text (Docling excludes tables automatically)
+            if page.text:
+                f.write("Text:\n")
+                f.write(page.text.strip() + "\n\n")
+
+            # Write tables
+            if page.tables:
+                for table_idx, t in enumerate(page.tables, start=1):
+                    f.write(f"Table {table_idx}:\n")
+                    f.write(t.as_markdown() + "\n\n")  # You can also use as_dict() or as_html()
+
+            f.write("\n\n")
+
+    print(f"✅ Extraction saved to {output_path}")
+
+
+# Example usage
+if __name__ == "__main__":
+    pdf_path = "sample.pdf"
+    extract_text_and_tables_with_docling(pdf_path, "extracted_output.txt")
+
+*********************************************************************************************
+
 import pdfplumber
 
 def extract_text_without_tables(pdf_path, tol_line=3):
