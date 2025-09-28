@@ -1,5 +1,55 @@
 import camelot
 import pdfplumber
+from openai import OpenAI
+
+client = OpenAI(api_key="YOUR_OPENAI_API_KEY")  # or set in env var
+
+def describe_table_with_openai(table_markdown):
+    prompt = f"""
+    You are an analyst. Here is a table extracted from a PDF:
+
+    {table_markdown}
+
+    Please summarize the key information in plain English.
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # or "gpt-4o", or Azure deployment name
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
+    )
+    return response.choices[0].message.content.strip()
+
+def extract_with_camelot_and_openai(pdf_path, output_txt="camelot_ai_described.txt"):
+    with open(output_txt, "w", encoding="utf-8") as f:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page_num, page in enumerate(pdf.pages, start=1):
+                f.write(f"===== Page {page_num} =====\n\n")
+
+                # Page text
+                text = page.extract_text()
+                if text:
+                    f.write("Text:\n")
+                    f.write(text.strip() + "\n\n")
+
+                # Tables
+                tables = camelot.read_pdf(pdf_path, pages=str(page_num), flavor="lattice")
+                for idx, table in enumerate(tables, start=1):
+                    table_md = table.df.to_markdown(index=False)
+                    f.write(f"Table {idx}:\n")
+                    f.write(table_md + "\n\n")
+
+                    # Get AI description
+                    ai_summary = describe_table_with_openai(table_md)
+                    f.write(f"AI Description:\n{ai_summary}\n\n")
+
+    print(f"✅ Extraction + AI descriptions saved to {output_txt}")
+
+
+**************************************
+
+import camelot
+import pdfplumber
 
 def extract_with_camelot(pdf_path, output_txt="camelot_extracted.txt"):
     with open(output_txt, "w", encoding="utf-8") as f:
