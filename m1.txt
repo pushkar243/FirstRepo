@@ -1,3 +1,6 @@
+tables = camelot.read_pdf(pdf_path, pages=str(page_num), flavor="lattice")
+*****************************
+
 from docling.document_converter import DocumentConverter
 
 def extract_text_and_tables_with_docling(pdf_path, output_path="extracted_output.txt"):
