@@ -1,3 +1,9 @@
+data = {}
+data.setdefault("text", []).append("new line")
+data.setdefault("text", []).append("another line")
+print(data)
+************************
+
 import camelot
 import pdfplumber
 from openai import OpenAI
