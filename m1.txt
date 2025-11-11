@@ -1,3 +1,79 @@
+!pip install azure-search-documents tqdm
+## Configuration
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from tqdm import tqdm
+import time
+
+# ---------- DUMMY CONFIG (replace with your real ones) ----------
+
+# Source (FROM)
+SRC_ENDPOINT = "https://SOURCE-SEARCH-NAME.search.windows.net"
+SRC_KEY = "SOURCE-ADMIN-KEY"
+SRC_INDEX = "source-index-name"
+
+# Destination (TO)
+DST_ENDPOINT = "https://DEST-SEARCH-NAME.search.windows.net"
+DST_KEY = "DEST-ADMIN-KEY"
+DST_INDEX = "destination-index-name"
+
+# Field names
+KEY_FIELD = "id"                   # usually "id"
+VECTOR_FIELD = "contentVector"     # change to your vector field
+TEXT_FIELD = "content"             # optional text field, or set to None
+
+PAGE_SIZE = 1000
+BATCH_SIZE = 500
+
+# ---------------------------------------------------------------
+
+src = SearchClient(endpoint=SRC_ENDPOINT, index_name=SRC_INDEX, credential=AzureKeyCredential(SRC_KEY))
+dst = SearchClient(endpoint=DST_ENDPOINT, index_name=DST_INDEX, credential=AzureKeyCredential(DST_KEY))
+
+########helper function
+
+def stream_docs(page_size=PAGE_SIZE):
+    results = src.search(search_text="*", top=page_size, include_total_count=True)
+    total = results.get_count()
+    print(f"Total documents found: {total}")
+    for page in results.by_page(results_per_page=page_size):
+        for doc in page:
+            yield dict(doc)  # make sure it's pure dict
+
+def chunk(iterable, size):
+    buffer = []
+    for item in iterable:
+        buffer.append(item)
+        if len(buffer) >= size:
+            yield buffer
+            buffer = []
+    if buffer:
+        yield buffer
+
+
+##########Migration Logic
+uploaded = 0
+failed = 0
+
+for batch in tqdm(chunk(stream_docs(), BATCH_SIZE), desc="Migrating"):
+    try:
+        result = dst.upload_documents(documents=batch)
+        # Count successes/failures
+        for r in result:
+            if r.get("succeeded", False):
+                uploaded += 1
+            else:
+                failed += 1
+    except Exception as e:
+        print("Batch failed:", e)
+        failed += len(batch)
+
+print("✅ Migration complete")
+print(f"Uploaded: {uploaded}")
+print(f"Failed: {failed}")
+################
+
+******************************************
 def install_and_import(package, import_name=None):
     """Try to import, otherwise install the package."""
     try:
