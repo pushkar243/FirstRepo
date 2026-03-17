@@ -1,3 +1,166 @@
+Slide 1: About Me (2–3 mins)
+
+“Hi everyone, thanks for the opportunity.
+
+I’m a Technology and Data Leader with experience in building engineering and data science capabilities from the ground up.
+
+Over the last few years, I’ve focused on not just delivering solutions, but building sustainable teams, scalable platforms, and strong alignment between technology and business outcomes.
+
+What excites me about this role is the opportunity to combine all three —
+people, data, and business impact — at scale.”
+
+🟦 Slide 2: My Journey (2–3 mins)
+
+“My journey has evolved across three key dimensions.
+
+First, building engineering capability, where I’ve set up teams and delivery models from scratch.
+
+Second, moving into data science and AI, driving use cases in areas like credit risk and analytics.
+
+And third, working closely with business functions like Wealth Management to ensure that data and AI are not just technical capabilities, but business enablers.
+
+This progression has shaped how I think — not in silos, but in end-to-end value creation.”
+
+🟦 Slide 3: Building Engineering Capability (3–4 mins)
+
+“One of the key experiences was building an engineering capability in Pune.
+
+This involved setting up a team of 3 BAs, 24 developers, and 8 QA engineers, working across both vendor and permanent staff.
+
+A critical part of this was transitioning work from vendor-led delivery in Bangalore to an in-house Pune-based model.
+
+The focus was not just cost — but stronger knowledge retention, better control, and long-term capability building.
+
+What I learned here is that building a team is not just about hiring —
+it’s about creating ownership, structure, and a culture of delivery excellence.”
+
+🟦 Slide 4: Driving AI/ML Innovation in Credit Risk (3–4 mins)
+
+“In my role as AI/ML Architect and Product Owner, I focused on embedding AI into core credit risk processes.
+
+The opportunity was to move from traditional reporting to intelligent, insight-driven systems.
+
+Actions included defining GenAI strategy, deploying RAG-based solutions, and building models like early warning systems and segmentation models.
+
+The impact was improved risk visibility, better decision support, and measurable improvements in model performance.
+
+This was where I started seeing AI not just as a tool — but as a strategic differentiator.”
+
+🟦 Slide 5: Wealth Management Analytics (3–4 mins)
+
+“In Wealth Management, the focus shifted more towards business impact and growth.
+
+The opportunity was to build an analytics capability that could support multiple use cases across client engagement and decision-making.
+
+We established a data science function that worked closely with business stakeholders and delivered actionable insights.
+
+The impact included improved targeting, better segmentation, and stronger alignment between data and business outcomes.
+
+This experience reinforced the importance of embedding analytics into real workflows — not keeping it as a separate function.”
+
+🟦 Slide 6: Technical Leadership & Innovation (3 mins)
+
+“My technical focus areas have been around four key pillars.
+
+AI and GenAI platforms, especially building scalable and reusable capabilities.
+
+Applying ML in financial domains like risk and analytics.
+
+Designing RAG-based architectures to unlock enterprise knowledge.
+
+And ensuring Responsible AI through governance, explainability, and controls.
+
+For me, technical leadership is not about chasing every new trend —
+it’s about choosing the right technologies and making them work at scale.”
+
+🟦 Slide 7: Building & Scaling Teams (2–3 mins)
+
+“A big part of my role has been building and scaling high-performing teams.
+
+This includes hiring the right mix of skills, creating clear ownership, and fostering collaboration across functions.
+
+I’ve worked across both vendor and in-house models, and I strongly believe in building internal capability for long-term success.
+
+Equally important is creating an environment where people can learn, grow, and take ownership.”
+
+🟦 Slide 8: Top 3 Challenges (3–4 mins)
+
+“I see three key challenges and opportunities in the current environment.
+
+First, scaling SLMs and establishing strong evaluation frameworks — ensuring models are reliable, explainable, and production-ready.
+
+Second, using AI as a growth lever in Wealth Management — enabling better client insights, personalization, and business opportunities.
+
+And third, building and retaining future-ready talent in a rapidly evolving landscape.
+
+These are not just challenges — they are areas where focused leadership can create significant impact.”
+
+🟦 Slide 9: Leadership Style (Football Analogy) (2–3 mins)
+
+“My leadership style is strongly influenced by football.
+
+It’s about balancing individual strengths with team goals.
+
+Creating clarity on roles, enabling collaboration, and stepping in when needed — but also trusting the team.
+
+And most importantly, playing for a common objective, not individual success.
+
+This aligns closely with values like collaboration, accountability, and excellence.”
+
+🟦 Slide 10: Enabling Capability & Impact (2–3 mins)
+
+“For me, success comes from bringing together three things.
+
+Technology — building scalable and future-ready platforms.
+
+Data — driving insights and decision-making.
+
+And people — creating strong, empowered teams.
+
+When these come together, that’s when real impact happens.”
+
+🟦 Slide 11: 30-60-90 Plan (3–4 mins)
+
+“My approach in the first 90 days would be structured and outcome-focused.
+
+First 30 days — understand the landscape, stakeholders, and current capabilities.
+
+Next 60 days — identify key opportunities, align on priorities, and initiate quick wins.
+
+By 90 days — start scaling initiatives, building momentum, and establishing a clear roadmap.
+
+This approach is designed to directly address the challenges I mentioned earlier.”
+
+🟦 Slide 12: Closing (1–2 mins)
+
+“To summarise —
+
+I bring experience in building teams, scaling technology, and driving business impact through data and AI.
+
+What excites me about this opportunity is the ability to do this at scale — while aligning closely with strong organisational values.
+
+I’d be happy to dive deeper into any area.”
+
+🔥 Final Tips (Important)
+
+Speak calm and slightly slower than usual
+
+Pause after key lines (impact statements)
+
+Don’t rush — you have enough content for 30 mins
+
+Keep it conversational, not robotic
+
+If you want, next I can:
+✅ Add power one-liners per slide (to impress panel)
+✅ Or do a mock interview Q&A based on this deck (very useful)
+
+You’ve reached the Free limit for chats with attachments
+Upgrade now or wait until 11:15 PM to keep using files, or chat now without files.
+New chat
+Claim free offer
+
+
 !pip install azure-search-documents tqdm
 ## Configuration
 from azure.search.documents import SearchClient
